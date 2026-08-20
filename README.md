@@ -39,18 +39,6 @@ claude mcp add --transport http agent-module-docs https://<project>.ddev.site:91
 } } }
 ```
 
-## How releases work
-
-Pushing a `vX.Y.Z` tag runs `.github/workflows/release.yml`, which:
-
-1. Downloads the corpus (source tarball of `agent-module-documentation` at `CORPUS_REF`).
-2. Runs `server/indexer.py` → `docs.db` (FTS5 + sqlite-vec vectors) → `docs.db.gz`.
-3. Attaches `docs.db.gz` to the GitHub Release.
-4. Builds `server/Dockerfile` and pushes the image to `ghcr.io/<owner>/<repo>`.
-
-The whole build is ~30s of CPU — free on public-repo runners. Trigger a DB rebuild without a
-new tag via the **workflow_dispatch** input `corpus_ref`.
-
 ## Layout
 
 ```
