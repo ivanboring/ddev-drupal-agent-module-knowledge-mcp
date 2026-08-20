@@ -31,7 +31,9 @@ import sqlite_vec
 from embed import MODEL_NAME, MODEL_DIM, embed as embed_texts
 
 SCHEMA_VERSION = "1"
-VERSION_RE = re.compile(r"^\d+\.\d+\.x$")
+# The corpus mixes three version-dir shapes (see AGENTS.md): minor 'N.N.x' (e.g. 3.6.x),
+# major-only 'N.x' (e.g. 3.x), and legacy '8.x-N.x' / '9.x-N.x'. Accept all of them.
+VERSION_RE = re.compile(r"^(?:\d+\.x-\d+\.x|\d+\.\d+\.x|\d+\.x)$")
 
 
 def log(*a):
@@ -39,8 +41,18 @@ def log(*a):
 
 
 def version_key(v):
-    m = re.match(r"(\d+)\.(\d+)\.x", v or "")
-    return (int(m.group(1)), int(m.group(2))) if m else (-1, -1)
+    """Sort key so the newest version of a module sorts last, across all dir shapes."""
+    v = v or ""
+    m = re.match(r"^\d+\.x-(\d+)\.x$", v)          # legacy 8.x-1.x -> module major 1
+    if m:
+        return (int(m.group(1)), 0)
+    m = re.match(r"^(\d+)\.(\d+)\.x$", v)          # 3.6.x
+    if m:
+        return (int(m.group(1)), int(m.group(2)))
+    m = re.match(r"^(\d+)\.x$", v)                 # major-only 3.x
+    if m:
+        return (int(m.group(1)), 0)
+    return (-1, -1)
 
 
 # --------------------------------------------------------------------------- #
