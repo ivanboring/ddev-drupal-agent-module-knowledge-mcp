@@ -20,7 +20,7 @@ Tools exposed: `search_modules`, `get_module`, `list_docs`, `read_doc`, `list_ca
 ## Install
 
 ```bash
-ddev add-on get YOUR_GH_OWNER/ddev-drupal-agent-module-knowledge-mcp
+ddev add-on get ivanboring/ddev-drupal-agent-module-knowledge-mcp
 ddev restart
 ```
 
@@ -38,17 +38,6 @@ claude mcp add --transport http agent-module-docs https://<project>.ddev.site:91
     "url": "https://<project>.ddev.site:9131/mcp"
 } } }
 ```
-
-## Configure before publishing your fork
-
-Replace `YOUR_GH_OWNER` in three files with your GitHub owner/org:
-
-- `install.yaml` — the release-asset download URL
-- `docker-compose.agent-module-docs.yaml` — the GHCR image
-- `.github/workflows/release.yml` — `CORPUS_OWNER` (owner of `agent-module-documentation`)
-
-Pin the image tag (compose) and the release tag (install.yaml) to the same `vX.Y.Z` for
-reproducibility, instead of `:latest` / `releases/latest`.
 
 ## How releases work
 

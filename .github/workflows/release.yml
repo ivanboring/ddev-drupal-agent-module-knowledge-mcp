@@ -12,7 +12,7 @@ on:
 
 # Repo A (the corpus). Edit these two to your fork/owner.
 env:
-  CORPUS_OWNER: YOUR_GH_OWNER
+  CORPUS_OWNER: ivanboring
   CORPUS_REPO: agent-module-documentation
   CORPUS_REF: ${{ github.event.inputs.corpus_ref || 'main' }}
 
