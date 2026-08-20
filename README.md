@@ -1,9 +1,9 @@
 # DDEV — Drupal Agent Module Knowledge (MCP)
 
 A [DDEV](https://ddev.com) add-on that runs an **MCP server** serving an agent-consumable
-knowledge base of ~9,200 Drupal contrib modules. Your AI client (Claude Code, Claude Desktop)
+knowledge base of ~10,300 Drupal contrib modules. Your AI client (Claude Code, Claude Desktop)
 connects over HTTP and gets **hybrid search** (lexical BM25 + semantic) plus compact per-module
-docs — so an agent can understand and operate a module without reading its source.
+docs - so an agent can understand and operate a module without reading its source.
 
 The knowledge base and its build method live in the companion repo
 **`agent-module-documentation`** (see its `mcp/DESIGN.md` for the full architecture).
