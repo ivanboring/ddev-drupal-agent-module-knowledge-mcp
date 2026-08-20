@@ -1,0 +1,84 @@
+name: release
+
+# Build the prebuilt DB (from repo A's corpus) and the server image, then publish a Release.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      corpus_ref:
+        description: 'Ref (branch/tag/sha) of the corpus repo to index'
+        default: 'main'
+
+# Repo A (the corpus). Edit these two to your fork/owner.
+env:
+  CORPUS_OWNER: YOUR_GH_OWNER
+  CORPUS_REPO: agent-module-documentation
+  CORPUS_REF: ${{ github.event.inputs.corpus_ref || 'main' }}
+
+permissions:
+  contents: write   # create the release + upload assets
+  packages: write   # push the image to GHCR
+
+jobs:
+  build-db:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+
+      - name: Install build deps
+        run: pip install -r server/requirements.txt
+
+      - name: Fetch corpus (source tarball of repo A @ ref)
+        run: |
+          mkdir -p corpus
+          curl -fL "https://github.com/${CORPUS_OWNER}/${CORPUS_REPO}/archive/${CORPUS_REF}.tar.gz" \
+            | tar xz --strip-components=1 -C corpus
+          test -d corpus/modules
+
+      - name: Build docs.db
+        run: |
+          python server/indexer.py --corpus corpus/modules --out docs.db \
+            --corpus-commit "${CORPUS_OWNER}/${CORPUS_REPO}@${CORPUS_REF}"
+          gzip -9 docs.db
+          ls -lh docs.db.gz
+
+      - name: Upload artifact (for workflow_dispatch runs)
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-db
+          path: docs.db.gz
+
+      - name: Attach to Release (tag pushes only)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: docs.db.gz
+
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/') }}
+      - name: Build & push
+        uses: docker/build-push-action@v6
+        with:
+          context: server
+          push: ${{ startsWith(github.ref, 'refs/tags/') }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

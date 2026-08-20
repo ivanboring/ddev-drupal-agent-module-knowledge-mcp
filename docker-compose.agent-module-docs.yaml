@@ -1,0 +1,27 @@
+#ddev-generated
+# Agent module knowledge MCP — HTTP service exposed through the DDEV router.
+# Endpoint (default): https://<project>.ddev.site:9131/mcp
+services:
+  agent-module-docs:
+    container_name: ddev-${DDEV_SITENAME}-agent-module-docs
+    # Prebuilt public image. Pin to a release tag instead of :latest for reproducibility.
+    image: ghcr.io/YOUR_GH_OWNER/ddev-drupal-agent-module-knowledge-mcp:latest
+    restart: "no"
+    labels:
+      com.ddev.site-name: ${DDEV_SITENAME}
+      com.ddev.approot: ${DDEV_APPROOT}
+    environment:
+      - DOCS_DB=/data/docs.db
+      # Router exposure: external HTTPS 9131 -> container 9130 (and HTTP 9130 -> 9130).
+      - VIRTUAL_HOST=$DDEV_HOSTNAME
+      - HTTP_EXPOSE=9130:9130
+      - HTTPS_EXPOSE=9131:9130
+    volumes:
+      # docs.db is downloaded by install.yaml into .ddev/agent-module-docs/
+      - "./agent-module-docs:/data"
+      - ".:/mnt/ddev_config"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1',9130),2)"]
+      interval: 10s
+      timeout: 3s
+      retries: 5

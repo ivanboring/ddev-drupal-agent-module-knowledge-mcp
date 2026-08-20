@@ -1,0 +1,7 @@
+# Build artifacts — never committed; the DB is a Release asset built in CI.
+*.db
+*.db.gz
+corpus/
+__pycache__/
+*.pyc
+.venv/

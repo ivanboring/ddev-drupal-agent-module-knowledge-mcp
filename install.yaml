@@ -1,0 +1,33 @@
+name: agent-module-knowledge-mcp
+
+# Requires a DDEV new enough for modern add-on semantics.
+ddev_version_constraint: '>= v1.24.0'
+
+# Files copied into the project's .ddev/ directory.
+project_files:
+  - docker-compose.agent-module-docs.yaml
+
+pre_install_actions:
+  - mkdir -p ${DDEV_APPROOT}/.ddev/agent-module-docs
+
+post_install_actions:
+  # Download the prebuilt hybrid-search DB (release asset) and unpack it beside the service.
+  # Pin the tag instead of 'latest' if you also pin the image tag in the compose file.
+  - |
+    echo "Downloading agent module knowledge DB (~128 MB) ..."
+    curl -fL --retry 3 \
+      https://github.com/YOUR_GH_OWNER/ddev-drupal-agent-module-knowledge-mcp/releases/latest/download/docs.db.gz \
+      | gunzip > ${DDEV_APPROOT}/.ddev/agent-module-docs/docs.db
+  - |
+    echo ""
+    echo "✓ Installed. Start/refresh with: ddev restart"
+    echo ""
+    echo "Register the MCP server with your AI client (host):"
+    echo "  claude mcp add --transport http agent-module-docs https://${DDEV_HOSTNAME}:9131/mcp"
+    echo ""
+    echo "Claude Desktop (claude_desktop_config.json):"
+    echo '  { "mcpServers": { "agent-module-docs": {'
+    echo "      \"transport\": \"http\", \"url\": \"https://${DDEV_HOSTNAME}:9131/mcp\" } } }"
+
+removal_actions:
+  - rm -rf ${DDEV_APPROOT}/.ddev/agent-module-docs
